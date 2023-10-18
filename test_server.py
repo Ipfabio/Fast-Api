@@ -18,3 +18,23 @@ print("------------/\------------")
 print("Deleting an item:")
 print(requests.delete("http://127.0.0.1:8000/delete/0").json())
 print(requests.get("http://127.0.0.1:8000/").json())
+
+# Validations
+
+# These request work:
+# print(requests.get("http://127.0.0.1:8000/items?count=20").json())
+# print(requests.get("http://127.0.0.1:8000/items?category=tools").json())
+
+# # This request fails because 'ingredient' is not a valid category, as defined in the Category
+# print(requests.get("http://127.0.0.1:8000/items?category=ingredient").json())
+
+# # These request fail because count has to be an integer:
+
+# # Here, validation ocurrs because of the specified type hinys on the endpoint.
+# print(requests.get("http://127.0.0.1:8000/items?count=Hello").json())
+
+# # And here, because of Pydantic.
+# print(requests.post(
+#     "http://127.0.0.1:8000/", json={"name":"Screwdriver", "price": 3.99, "count": "Hello", "id": 4, "category": "tools"},
+#     ).json()
+# )
