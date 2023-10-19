@@ -1,21 +1,32 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import FastAPI, HTTPException, Path, Query
 
-app = FastAPI()
+# You can give your API a title and add additional metadata such as a description, version, title
+# The description also supports mardown formatting.
+app = FastAPI(
+    title="Aron's Handyman Emporium",
+    description="Aron does not only code but also helps you fix things. **See what's in shop",
+    version="0.1.0",
+)
 
 
+# Docstrings of classes will be reflected in the API documentation in the 'Schemas' section
 class Category(Enum):
+    """Category of an item"""
+
     TOOLS = "tools"
     CONSUMABLES = "consumables"
 
-
+# You can add metadata to attributes using the Field class.
+# This information will also be show in the auto-generated documentation.
 class Item(BaseModel):
-    name: str
-    price: float
-    count: int
-    id: int
-    category: Category
+    """Representation of an item in the system."""
+    name: str = Field(description="Name of the item.")
+    price: float = Field(description="Price of the item in Euro.")
+    count: int = Field(description="Amount of instances of this item in stock.")
+    id: int = Field(description="Unique integer that specifies this item.")
+    category: Category = Field(description="Category this item belongs to.")
 
 
 items = {
@@ -80,13 +91,20 @@ def add_item(item: Item) -> dict[str, Item]:
     items[item.id] = item
     return {"added": item}
 
-
-@app.put("/update/{item_id}")
+# The 'response' keyword allows you to specify which responses a user can expect form this
+@app.put(
+    "/update/{item_id}",
+    responses={
+        404: {"description": "Item not found"},
+        400: {"description": "No arguments specified"},
+    },
+)
+# The Query and Path classes also allow us to add documentation to query and path parameter
 def update(
-    item_id: int = Path(ge=0), # should be greater than or equal
+    item_id: int = Path(ge=0),  # should be greater than or equal
     name: str | None = Query(default=None, min_length=1, max_length=8),
-    price: float | None = Query(default= None, gt=0.0), # should be greater than zero
-    count: int | None = Query(default=None, ge=0), # should be at least 0
+    price: float | None = Query(default=None, gt=0.0),  # should be greater than zero
+    count: int | None = Query(default=None, ge=0),  # should be at least 0
 ) -> dict[str, Item]:
     if item_id not in items:
         HTTPException(status_code=404, detail=f"Item with {item_id} does not exist.")
