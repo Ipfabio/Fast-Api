@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Path, Query
 
 app = FastAPI()
 
@@ -83,10 +83,10 @@ def add_item(item: Item) -> dict[str, Item]:
 
 @app.put("/update/{item_id}")
 def update(
-    item_id: int,
-    name: str | None = None,
-    price: float | None = None,
-    count: int | None = None,
+    item_id: int = Path(ge=0), # should be greater than or equal
+    name: str | None = Query(default=None, min_length=1, max_length=8),
+    price: float | None = Query(default= None, gt=0.0), # should be greater than zero
+    count: int | None = Query(default=None, ge=0), # should be at least 0
 ) -> dict[str, Item]:
     if item_id not in items:
         HTTPException(status_code=404, detail=f"Item with {item_id} does not exist.")
